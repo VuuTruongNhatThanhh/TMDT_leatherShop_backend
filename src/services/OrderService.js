@@ -116,7 +116,7 @@ const createOrder = (newOrder) => {
                 });
                 return;
             }
-
+console.log('orderItem',orderItems)
             // Tạo đơn hàng chỉ khi tất cả các sản phẩm còn hàng
             const createdOrder = await Order.create({
                 orderItems,
@@ -281,6 +281,27 @@ const getAllOrder = () =>{
     })
 }
 
+const updateStatus = async (orderId, status) => {
+    try {
+        // Tìm đơn hàng dựa trên orderId
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            throw new Error('Order not found');
+        }
+
+        // Cập nhật trạng thái mới
+        order.status = status;
+
+        // Lưu lại vào database
+        await order.save();
+
+        return { status: 'OK', message: 'Order status updated successfully' };
+    } catch (error) {
+        throw error; // Ném lỗi để controller xử lý
+    }
+};
+
 
 
 
@@ -291,5 +312,6 @@ module.exports = {
     getAllOrderDetails,
     getDetailsOrder,
     cancelOrder,
-    getAllOrder
+    getAllOrder,
+    updateStatus
 }

@@ -8,7 +8,10 @@ const userSchema = new mongoose.Schema(
         phone: {type: String},
         address: {type: String},
         avatar: {type: String},
-        city: {type: String}
+        city: {type: String},
+        confirmed:{type: Boolean, default: false, required:true},
+        otp:{type: String},
+        point:{type: Number, default:0}
     },{
         // Sẽ có thời gian tạo và update
         timestamps: true

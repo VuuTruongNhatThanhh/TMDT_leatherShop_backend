@@ -9,14 +9,15 @@ const createOrder = async(req, res) => {
         
       
 
-        if(!paymentMethod || !itemsPrice || !shippingPrice || !totalPrice || !fullName || !address || !city || !phone){
-            return res.status(200).json({
-                status: 'ERR',
-                message: 'The input is required'
+        // if(!paymentMethod || !itemsPrice || !shippingPrice || !totalPrice || !fullName || !address || !city || !phone){
+        //     return res.status(200).json({
+        //         status: 'ERR',
+        //         message: 'The input is required'
 
-            })
-        }
+        //     })
+        // }
     //   Nếu không dính các trường hợp trên thì đưa cái request qua bên service (req.body)
+    // console.log('order',req.body)
       const response =   await OrderService.createOrder(req.body)
         return res.status(200).json(response)
     } catch (e) {
@@ -103,6 +104,28 @@ const  getAllOrder = async(req, res) => {
     }
 } 
 
+const updateStatus = async (req, res) => {
+    try {
+        const { orderId } = req.body; // Lấy orderId từ params
+        const { status } = req.body; // Lấy status từ body
+
+        if (!orderId || !status) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'orderId and status are required'
+            });
+        }
+
+        const response = await OrderService.updateStatus(orderId, status); // Gọi service để cập nhật status
+
+        return res.status(200).json(response);
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message || 'Internal server error'
+        });
+    }
+};
+
 
 
 
@@ -116,5 +139,6 @@ module.exports = {
     getAllOrderDetails,
     getDetailsOrder,
     cancelOrder,
-    getAllOrder
+    getAllOrder,
+    updateStatus
 } 

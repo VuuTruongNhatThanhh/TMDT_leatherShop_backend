@@ -43,7 +43,31 @@ const sendEmailCreateOrder = async (email, orderItems) => {
       });
 }
 
+const sendEmailSignUp = async (email, otp) => {
+  const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secusre: true, // Use `true` for port 465, `false` for all other ports
+      auth: {
+        user: process.env.MAIL_ACCOUNT,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+ 
+    
+    const info = await transporter.sendMail({
+      from: process.env.MAIL_ACCOUNT, // sender address
+      to: email, // list of receivers
+      subject: "Mã OTP", // Subject line
+      text: "Mã OTP", // plain text body
+      html: `<div>Mã OTP: <br>${otp}</div>`
+     
+    });
+}
+
 module.exports = {
     sendEmailCreateOrder ,
-    convertPrice
+    convertPrice,
+    sendEmailSignUp
 }

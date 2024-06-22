@@ -5,6 +5,7 @@ const { authUserMiddleware } = require("../middleware/authMiddleware");
 
 router.post('/create', OrderController.createOrder )
 router.get('/get-all-order/:id', OrderController.getAllOrderDetails )
+router.post('/update', OrderController.updateStatus )
 router.get('/get-details-order/:id', OrderController.getDetailsOrder )
 router.delete('/cancel-order/:id', OrderController.cancelOrder )
 router.get('/get-all-order', OrderController.getAllOrder )

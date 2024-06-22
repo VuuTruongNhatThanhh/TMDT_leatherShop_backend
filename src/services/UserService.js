@@ -2,6 +2,8 @@ const User = require("../models/UserModel")
 const bcrypt = require("bcryptjs")
 const { generalAccessToken, generalRefreshToken } = require("./JwtService")
 const { use } = require("../routes/UserRouter")
+const OTPService = require("../services/OTPService")
+const EmailService = require("../services/EmailService")
 // Xử lý api ở đây
 const createUser = (newUser) =>{
     return new Promise(async(resolve, reject) =>{
@@ -14,23 +16,31 @@ const createUser = (newUser) =>{
           if(checkUser!==null){
             resolve({
                 status: 'ERR',
-                message: 'The email is already'
+                message: 'Email đã được sử dụng'
             })
           }
+
+         
         //   Mã hóa mật khẩu
           const hash = bcrypt.hashSync(password, 10)
+          const otpSignup = OTPService.generateOTP()
+          await EmailService.sendEmailSignUp(email,otpSignup);
             // gọi bên model
             const createdUser = await User.create({
                 name, 
                 email, 
                 password: hash, 
-                phone
+                phone,
+                otp: otpSignup
+                
             })
             if(createdUser){
+                
                 resolve({
                     status: 'OK',
                     message: 'SUCCESS',
                     data: createdUser
+                   
                 })
             }
             resolve({})
@@ -39,6 +49,141 @@ const createUser = (newUser) =>{
         }
     })
 }
+
+const verifyUser = async (id, otp) => {
+    try {
+        const user = await User.findById(id);
+        if (!user) {
+            return {
+                status: 'ERR',
+                message: 'Người dùng không tồn tại'
+            };
+        }
+
+        if (user.otp !== otp) {
+            return {
+                status: 'ERR',
+                message: 'Mã OTP không hợp lệ'
+            };
+        }
+
+        user.confirmed = true;
+        await user.save();
+
+        return {
+            status: 'OK',
+            message: 'Xác thực thành công'
+        };
+    } catch (error) {
+        return {
+            status: 'ERR',
+            message: error.message
+        };
+    }
+};
+
+const forgotPassUser = async (email) => {
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return {
+                status: 'ERR',
+                message: 'Người dùng không tồn tại'
+            };
+        }
+
+        const otpSignup = OTPService.generateOTP()
+        await EmailService.sendEmailSignUp(email,otpSignup);
+
+         // Update user's otp field with the new OTP
+         user.otp = otpSignup;
+         await user.save();
+
+        return {
+            status: 'OK',
+            message: 'Gửi mã OTP thành công',
+            data: user
+             
+        };
+      
+
+     
+
+       
+    } catch (error) {
+        return {
+            status: 'ERR',
+            message: error.message
+        };
+    }
+};
+
+const changePassUser = async (id, password, confirmPassword) => {
+    try {
+        // Step 1: Find the user by id
+        const user = await User.findById(id);
+        if (!user) {
+            return {
+                status: 'ERR',
+                message: 'Người dùng không tồn tại'
+            };
+        }
+
+        // Step 2: Check if password and confirmPassword match
+        if (password !== confirmPassword) {
+            return {
+                status: 'ERR',
+                message: 'Mật khẩu và xác nhận mật khẩu không khớp'
+            };
+        }
+
+        // Step 3: Hash the new password
+        const hash = bcrypt.hashSync(password, 10);
+
+        // Step 4: Update user's password in the database
+        user.password = hash;
+        await user.save();
+
+        return {
+            status: 'OK',
+            message: 'Đổi mật khẩu thành công'
+        };
+    } catch (error) {
+        return {
+            status: 'ERR',
+            message: error.message
+        };
+    }
+};
+
+
+const pointUser = async (id, point) => {
+    try {
+        // Step 1: Find the user by id
+        const user = await User.findById(id);
+        if (!user) {
+            return {
+                status: 'ERR',
+                message: 'Người dùng không tồn tại'
+            };
+        }else{
+
+    
+        user.point  +=point;
+        await user.save();
+
+        return {
+            status: 'OK',
+            message: 'Cập nhật điểm thưởng thành công'
+        };
+    }
+    } catch (error) {
+        return {
+            status: 'ERR',
+            message: error.message
+        };
+    }
+};
 
 const loginUser = (userLogin) =>{
     return new Promise(async(resolve, reject) =>{
@@ -51,9 +196,18 @@ const loginUser = (userLogin) =>{
           if(checkUser===null){
             resolve({
                 status: 'ERR',
-                message: 'The user is not defined'
+                message: 'Tài khoản không tồn tại'
             })
           }
+
+
+          if (!checkUser.confirmed) {
+            resolve({
+                status: 'ERR',
+                message: 'Tài khoản chưa được xác thực'
+            });
+            return;
+        }
         //   Kiểm tra password mã hóa và password mã hóa được lưu trong db
         // comparePassword là true thì mật khẩu trùng khớp và ngược lại
           const comparePassword  = bcrypt.compareSync(password, checkUser.password)
@@ -68,7 +222,7 @@ const loginUser = (userLogin) =>{
                 if(!comparePassword){
                     resolve({
                         status: 'ERR',
-                        message: 'The password or user is incorrect'
+                        message: 'Mật khẩu không đúng'
                     })
                 }
 
@@ -234,6 +388,10 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailsUser,
-    deleteManyUser
+    deleteManyUser,
+    verifyUser,
+    forgotPassUser,
+    changePassUser,
+    pointUser
   
 }

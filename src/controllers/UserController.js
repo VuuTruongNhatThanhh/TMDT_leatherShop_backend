@@ -11,22 +11,22 @@ const createUser = async(req, res) => {
         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
         const isCheckEmail = reg.test(email)
 
-        if( !email || !password || !confirmPassword ){
+        if( !email || !password || !confirmPassword){
             return res.status(200).json({
                 status: 'ERR',
-                message: 'The input is required'
+                message: 'Vui lòng điền đầy đủ thông tin'
 
             })
         } else if(!isCheckEmail){
             return res.status(200).json({
                 status: 'ERR',
-                message: 'The input is email'
+                message: 'Tên đăng nhập phải là email'
 
             }) 
         } else if (password !== confirmPassword){
             return res.status(200).json({
                 status: 'ERR',
-                message: 'The password and confirm password is not equal'
+                message: 'Mật khẩu không trùng khớp'
 
             }) 
         }
@@ -40,6 +40,79 @@ const createUser = async(req, res) => {
     }
 }  
 
+const verifyUser = async(req, res) => {
+    try {
+        const { id, otp } = req.body;
+
+        if (!id || !otp) {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'Vui lòng cung cấp đầy đủ thông tin'
+            });
+        }
+
+        const response = await UserService.verifyUser(id, otp);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({ message: e });
+    }
+};
+
+const forgotPassUser = async(req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'Vui lòng nhập email'
+            });
+        }
+
+        const response = await UserService.forgotPassUser(email);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({ message: e });
+    }
+};
+
+const  changePassUser = async(req, res) => {
+    try {
+        const { id, password, confirmPassword } = req.body;
+
+        if (!id || !password || !confirmPassword) {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'Vui lòng điền đủ thông tin'
+            });
+        }
+
+        const response = await UserService.changePassUser(id, password, confirmPassword);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({ message: e });
+    }
+};
+
+const  pointUser = async(req, res) => {
+    try {
+        const { id, point } = req.body;
+
+        if (!id || !point) {
+            return res.status(200).json({
+                status: 'ERR',
+                message: 'Vui lòng điền đủ thông tin'
+            });
+        }
+
+        const response = await UserService.pointUser(id, point);
+        return res.status(200).json(response);
+    } catch (e) {
+        return res.status(404).json({ message: e });
+    }
+};
+
+
 const loginUser = async(req, res) => {
     try{
         // Lấy ra những thuộc tính request sau khi send bằng TC
@@ -51,13 +124,13 @@ const loginUser = async(req, res) => {
         if(!email || !password ){
             return res.status(200).json({
                 status: 'ERR',
-                message: 'The input is required'
+                message: 'Điền đầy đủ thông tin'
 
             })
         } else if(!isCheckEmail){
             return res.status(200).json({
                 status: 'ERR',
-                message: 'The input is email'
+                message: 'Tên đăng nhập phải là email'
 
             }) 
         } 
@@ -241,5 +314,9 @@ module.exports = {
     getDetailsUser,
     refreshToken,
     logoutUser,
-    deleteMany
+    deleteMany,
+    verifyUser,
+    forgotPassUser,
+    changePassUser,
+    pointUser
 } 

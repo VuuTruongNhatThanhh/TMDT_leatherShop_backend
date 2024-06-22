@@ -14,13 +14,14 @@ const orderSchema = new mongoose.Schema({
                 ref: 'Product',
                 required: true,
             },
+            type: {type: String}
         },
     ],
     shippingAddress: {
         fullName: { type: String, required: true },
         address: { type: String, required: true },
         city: { type: String, required: true },
-        phone: { type: Number, required: true },
+        phone: { type: String, required: true },
     },
     paymentMethod: { type: String, required: true },
     //total price product
@@ -35,6 +36,7 @@ const orderSchema = new mongoose.Schema({
     paidAt: { type: Date },
     // Đã được giao hay chưa
     isDelivered: { type: Boolean, default: false },
+    status:{type: String, default:'Chờ xác nhận'},
     // Giao vào lúc nào
     deliveredAt: { type: Date },
 },

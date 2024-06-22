@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         // Số lượng sản phẩm còn trong kho
         countInStock: { type: Number, required: true },
-        rating: { type: Number, required: true },
+        rating: { type: Number},
         description: { type: String },
         discount: { type: Number },
         selled: { type: Number }
